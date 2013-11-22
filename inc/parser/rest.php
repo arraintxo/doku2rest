@@ -90,11 +90,11 @@ class Doku_Renderer_Rest extends Doku_Renderer {
     }
 
     function underline_open() {
-        
+        $this->doc .= '*';
     }
 
     function underline_close() {
-        
+        $this->doc .= '*';
     }
 
     function monospace_open() {
@@ -125,7 +125,7 @@ class Doku_Renderer_Rest extends Doku_Renderer {
 
     function deleted_close() {}
 
-        /**
+     /**
      * Callback for footnote start syntax
      *
      * All following content will go to the footnote instead of
