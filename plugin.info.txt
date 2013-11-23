@@ -1,0 +1,7 @@
+base   doku2rest
+author Alayn Gortazar
+email  zutoin@gmail.com
+date   2013-12-23
+name   Dokuwiki to ReStructuredText exporter
+desc   This plugin exports Dokuwiki documents to ReStructuredText format
+url    https://github.com/arraintxo/doku2rest
