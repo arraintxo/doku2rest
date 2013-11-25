@@ -1,33 +1,43 @@
 <?php
 /**
- * Renderer for ReStructuredText output
+ * DokuWiki Plugin doku2rest (Renderer Component)
  *
- * @author Alayn Gortazar <hfuecks@gmail.com>
+ * @license GPL 2 http://www.gnu.org/licenses/gpl-2.0.html
+ * @author  Alayn Gortazar <zutoin@gmail.com>
  */
-if(!defined('DOKU_INC')) die('meh.');
 
-if ( !defined('DOKU_LF') ) {
-    // Some whitespace to help View > Source
-    define ('DOKU_LF',"\n");
-}
+// must be run within Dokuwiki
+if (!defined('DOKU_INC')) die();
 
-if ( !defined('DOKU_TAB') ) {
-    // Some whitespace to help View > Source
-    define ('DOKU_TAB',"\t");
-}
+require_once DOKU_INC.'inc/parser/renderer.php';
 
-require_once DOKU_INC . 'inc/parser/renderer.php';
-require_once DOKU_INC . 'inc/html.php';
-
-/**
- * The Renderer
- */
-class Doku_Renderer_Rest extends Doku_Renderer {
+class renderer_plugin_doku2rest extends Doku_Renderer {
     var $doc = '';
     var $store = '';
     var $listType = '- ';
     var $links = array();
+    var $footnotes = array();
     
+    public function __construct()
+    {
+        $this->nocache();
+    }
+    /**
+     * The format this renderer produces
+     */
+    public function getFormat(){
+        return 'rest';
+    }
+
+    function document_start() {
+        global $ID;
+        $headers = array(
+            'Content-Type' => 'text/txt',
+            'Content-Disposition' => 'attachment; filename="'.noNS($ID).'.rst";'
+        );
+        p_set_metadata($ID, array('format' => array('rest' => $headers) ));
+    }
+
     function document_end() {
         foreach ($this->links as $title => $link) {
             $this->doc .= '.. _`' . $title . '`: ' . $link . "\n";
@@ -320,7 +330,7 @@ class Doku_Renderer_Rest extends Doku_Renderer {
     function externallink($link, $title = NULL) {
         if (is_null($title)) {
             $this->doc .= $link;
-        } else {
+        } else if (is_string($title)) {        
             $this->doc .= '`' . $title . '`_';
             $this->links[$title] = $link;
         }
