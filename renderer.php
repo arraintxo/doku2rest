@@ -43,7 +43,7 @@ class renderer_plugin_doku2rest extends Doku_Renderer {
 
     function document_end() {
         foreach ($this->links as $title => $link) {
-            $this->doc .= '.. _`' . $title . '`: ' . $link . "\n";
+            $this->doc .= '.. _`' . $title . '`: ' . $link . DOKU_LF;
         }
     }
     function render_TOC() { return ''; }
@@ -59,13 +59,13 @@ class renderer_plugin_doku2rest extends Doku_Renderer {
         
         $length = mb_strlen($text, 'utf8');
         $headerLine = str_repeat($levelChars[$level - 1], $length);
-        $this->doc .= $text . "\n" . $headerLine . "\n\n"; 
+        $this->doc .= $text . DOKU_LF . $headerLine . DOKU_LF . DOKU_LF; 
     }
 
     function section_open($level) {}
 
     function section_close() {
-        $this->doc .= "\n";
+        $this->doc .= DOKU_LF;
     }
 
     function cdata($text) {
@@ -73,19 +73,19 @@ class renderer_plugin_doku2rest extends Doku_Renderer {
     }
 
     function p_open() {
-        $this->doc .= "\n";
+        $this->doc .= DOKU_LF;
     }
 
     function p_close() {
-        $this->doc .= "\n";
+        $this->doc .= DOKU_LF;
     }
 
     function linebreak() {
-        $this->doc .= "\n";
+        $this->doc .= DOKU_LF;
     }
 
     function hr() {
-        $this->doc .= "\n\n-----\n\n";
+        $this->doc .= DOKU_LF . DOKU_LF . "-----" . DOKU_LF . DOKU_LF;
     }
 
     function strong_open() {
@@ -208,25 +208,25 @@ class renderer_plugin_doku2rest extends Doku_Renderer {
     function listitem_close() {}
 
     function listcontent_open() {
-//        $this->doc .= "\n";
+//        $this->doc .= DOKU_LF;
     }
 
     function listcontent_close() {
-        $this->doc .= "\n";
+        $this->doc .= DOKU_LF;
     }
 
     function unformatted($text) {
-        $this->doc .= "\n.. \n\n";
+        $this->doc .= DOKU_LF . ".. " . DOKU_LF . DOKU_LF;
         $this->doc .= $this->_indent_text($text);
-        $this->doc .= "\n";
+        $this->doc .= DOKU_LF;
     }
     
     function _indent_text($text, $level = 1)
     {
         $indented_text = '';
-        $lines = explode("\n", $text);
+        $lines = explode(DOKU_LF, $text);
         foreach ($lines as $line) {
-            $indented_text .= str_repeat(' ', $level * 3) . $line . "\n";
+            $indented_text .= str_repeat(' ', $level * 3) . $line . DOKU_LF;
         }
         
         return $indented_text;
@@ -252,9 +252,9 @@ class renderer_plugin_doku2rest extends Doku_Renderer {
     function quote_close() {
         $text = $this->doc;
         $this->doc = $this->store;
-        $this->doc .= "\n";
+        $this->doc .= DOKU_LF;
         $this->doc .= $this->_indent_text($text);
-        $this->doc .= "\n";
+        $this->doc .= DOKU_LF;
     }
 
     function file($text, $lang = null, $file = null ) {
@@ -265,9 +265,9 @@ class renderer_plugin_doku2rest extends Doku_Renderer {
         if (is_null($lang)) {
             $lang = 'none';
         }
-        $this->doc .= "\n.. code-block:: " . $lang . "\n";
+        $this->doc .= DOKU_LF . ".. code-block:: " . $lang . DOKU_LF;
         $this->doc .= $this->_indent_text($text);
-        $this->doc .= "\n";
+        $this->doc .= DOKU_LF;
     }
 
     function acronym($acronym) {
@@ -376,7 +376,7 @@ class renderer_plugin_doku2rest extends Doku_Renderer {
         ) {}
 
     function table_open($maxcols = null, $numrows = null, $pos = null){
-        $this->doc .= "\n.. csv-table::\n";
+        $this->doc .= DOKU_LF . ".. csv-table::" . DOKU_LF;
         $this->store = $this->doc;
         $this->doc = '';
 
@@ -408,7 +408,7 @@ class renderer_plugin_doku2rest extends Doku_Renderer {
             $this->table = array();
         }
 
-        $this->doc .= "\n";
+        $this->doc .= DOKU_LF;
    }
 
     function tablerow_open(){
