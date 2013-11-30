@@ -1,4 +1,4 @@
 doku2rest
 =========
 
-ReStructuredText parser for Dokuwiki
+ReStructuredText exporter for Dokuwiki
