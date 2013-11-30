@@ -17,6 +17,9 @@ class renderer_plugin_doku2rest extends Doku_Renderer {
     var $listType = '- ';
     var $links = array();
     var $footnotes = array();
+    var $table = array();
+    var $tableheaders = array();
+    var $row = array();
     
     public function __construct()
     {
@@ -32,10 +35,10 @@ class renderer_plugin_doku2rest extends Doku_Renderer {
     function document_start() {
         global $ID;
         $headers = array(
-            'Content-Type' => 'text/txt',
+            'Content-Type' => 'text/x-rst',
             'Content-Disposition' => 'attachment; filename="'.noNS($ID).'.rst";'
         );
-        p_set_metadata($ID, array('format' => array('rest' => $headers) ));
+        p_set_metadata($ID, array('format' => array('doku2rest' => $headers) ));
     }
 
     function document_end() {
@@ -69,7 +72,9 @@ class renderer_plugin_doku2rest extends Doku_Renderer {
         $this->doc .= $text;
     }
 
-    function p_open() {}
+    function p_open() {
+        $this->doc .= "\n";
+    }
 
     function p_close() {
         $this->doc .= "\n";
@@ -216,12 +221,12 @@ class renderer_plugin_doku2rest extends Doku_Renderer {
         $this->doc .= "\n";
     }
     
-    function _indent_text($text)
+    function _indent_text($text, $level = 1)
     {
         $indented_text = '';
         $lines = explode("\n", $text);
         foreach ($lines as $line) {
-            $indented_text .= '  ' . $line . "\n";
+            $indented_text .= str_repeat(' ', $level * 3) . $line . "\n";
         }
         
         return $indented_text;
@@ -370,21 +375,67 @@ class renderer_plugin_doku2rest extends Doku_Renderer {
         $src,$title=NULL,$align=NULL,$width=NULL,$height=NULL,$cache=NULL
         ) {}
 
-    function table_open($maxcols = null, $numrows = null, $pos = null){}
+    function table_open($maxcols = null, $numrows = null, $pos = null){
+        $this->doc .= "\n.. csv-table::\n";
+        $this->store = $this->doc;
+        $this->doc = '';
 
-    function table_close($pos = null){}
+        $this->table = array();
+        $this->tableheaders = array();
+    }
 
-    function tablerow_open(){}
+    function table_close($pos = null){
+        $this->doc = $this->store;
+        $this->store = '';
+ 
+        if (sizeof($this->tableheaders)) {
+            $fp = fopen('php://temp/', 'w+');
+            fputcsv($fp, $this->tableheaders);
+            rewind($fp);
+            $this->doc .= $this->_indent_text(':header: ' . stream_get_contents($fp));
+            fclose($fp);
+            $this->tableheaders = array();
+        }
+        
+        if (sizeof($this->table)) {
+            $fp = fopen('php://temp/', 'w+');
+            foreach($this->table as $row) {
+                fputcsv($fp, $row);
+            }
+            rewind($fp);
+            $this->doc .= $this->_indent_text(stream_get_contents($fp)) . DOKU_LF;
+            fclose($fp);
+            $this->table = array();
+        }
 
-    function tablerow_close(){}
+        $this->doc .= "\n";
+   }
 
-    function tableheader_open($colspan = 1, $align = NULL, $rowspan = 1){}
+    function tablerow_open(){
+    }
 
-    function tableheader_close(){}
+    function tablerow_close(){
+        if (sizeof($this->row)) {
+            $this->table[] = $this->row;
+            $this->row = array();
+        }
+    }
 
-    function tablecell_open($colspan = 1, $align = NULL, $rowspan = 1){}
+    function tableheader_open($colspan = 1, $align = NULL, $rowspan = 1){
+    }
 
-    function tablecell_close(){}
+    function tableheader_close(){
+        $this->tableheaders[] = $this->doc;
+        $this->doc = '';
+    }
+
+    function tablecell_open($colspan = 1, $align = NULL, $rowspan = 1){
+    }
+
+    function tablecell_close(){
+        $this->row[] = $this->doc;
+        $this->doc = '';
+    }
 }
 
 
