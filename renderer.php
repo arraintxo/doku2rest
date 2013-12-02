@@ -20,6 +20,7 @@ class renderer_plugin_doku2rest extends Doku_Renderer {
     var $table = array();
     var $tableheaders = array();
     var $row = array();
+    var $quoteLevel = 0;
     
     public function __construct()
     {
@@ -245,16 +246,15 @@ class renderer_plugin_doku2rest extends Doku_Renderer {
     }
 
     function quote_open() {
-        $this->store = $this->doc;
-        $this->doc .= '';
+        $this->quoteLevel++;
+        $this->doc .= str_repeat(' ', 3);
     }
 
     function quote_close() {
-        $text = $this->doc;
-        $this->doc = $this->store;
-        $this->doc .= DOKU_LF;
-        $this->doc .= $this->_indent_text($text);
-        $this->doc .= DOKU_LF;
+        $this->quoteLevel--;
+        if (!$this->quoteLevel) {
+            $this->doc .= DOKU_LF;
+        }
     }
 
     function file($text, $lang = null, $file = null ) {
