@@ -21,11 +21,14 @@ class renderer_plugin_doku2rest extends Doku_Renderer {
     var $tableheaders = array();
     var $row = array();
     var $quoteLevel = 0;
+
+    var $lastHeaderLevel = 0;
     
     public function __construct()
     {
         $this->nocache();
     }
+
     /**
      * The format this renderer produces
      */
@@ -52,15 +55,20 @@ class renderer_plugin_doku2rest extends Doku_Renderer {
     function toc_additem($id, $text, $level) {}
 
     function header($text, $level, $pos) {
-        $levelChars = array('=', '-', '^', '"');
+        $levelChars = array('=', '-', '`', ':', '.', '\'', '"', '~', '^', '_', '*', '+', '#');
+        if ($level - $this->lastHeaderLevel > 1) {
+            $level = $this->lastHeaderLevel + 1;
+        }
         $levelCharsSize = sizeof($levelChars);
         if ($level > $levelCharsSize) {
             $level = $levelCharsSize;
         }
+
+        $this->lastHeaderLevel = $level;
         
         $length = mb_strlen($text, 'utf8');
         $headerLine = str_repeat($levelChars[$level - 1], $length);
-        $this->doc .= $text . DOKU_LF . $headerLine . DOKU_LF . DOKU_LF; 
+        $this->doc .= $text . DOKU_LF . $headerLine . DOKU_LF; 
     }
 
     function section_open($level) {}
@@ -74,7 +82,7 @@ class renderer_plugin_doku2rest extends Doku_Renderer {
     }
 
     function p_open() {
-        $this->doc .= DOKU_LF;
+//        $this->doc .= DOKU_LF;
     }
 
     function p_close() {
@@ -86,7 +94,7 @@ class renderer_plugin_doku2rest extends Doku_Renderer {
     }
 
     function hr() {
-        $this->doc .= DOKU_LF . DOKU_LF . "-----" . DOKU_LF . DOKU_LF;
+        $this->doc .= DOKU_LF . "-----" . DOKU_LF;
     }
 
     function strong_open() {
@@ -191,19 +199,25 @@ class renderer_plugin_doku2rest extends Doku_Renderer {
     }
 
     function listu_open() {
+        $this->doc .= DOKU_LF;
         $this->listType = '-';
     }
 
-    function listu_close() {}
+    function listu_close() {
+        $this->doc .= DOKU_LF;
+    }
 
     function listo_open() {
+        $this->doc .= DOKU_LF;
         $this->listType = '-';
     }
 
-    function listo_close() {}
+    function listo_close() {
+        $this->doc .= DOKU_LF;
+    }
 
     function listitem_open($level) {
-        $this->doc .= str_repeat('  ', $level * 2) . $this->listType;
+        $this->doc .= str_repeat(' ', $level - 1) . $this->listType;
     }
 
     function listitem_close() {}
@@ -217,7 +231,7 @@ class renderer_plugin_doku2rest extends Doku_Renderer {
     }
 
     function unformatted($text) {
-        $this->doc .= DOKU_LF . ".. " . DOKU_LF . DOKU_LF;
+        $this->doc .= DOKU_LF . "::" . DOKU_LF . DOKU_LF;
         $this->doc .= $this->_indent_text($text);
         $this->doc .= DOKU_LF;
     }
@@ -254,6 +268,7 @@ class renderer_plugin_doku2rest extends Doku_Renderer {
         $this->quoteLevel--;
         if (!$this->quoteLevel) {
             $this->doc .= DOKU_LF;
+            $this->doc .= DOKU_LF;
         }
     }
 
@@ -265,9 +280,9 @@ class renderer_plugin_doku2rest extends Doku_Renderer {
         if (is_null($lang)) {
             $lang = 'none';
         }
-        $this->doc .= DOKU_LF . ".. code-block:: " . $lang . DOKU_LF;
+        $this->doc .= DOKU_LF . ".. code-block:: " . $lang . DOKU_LF . DOKU_LF;
         $this->doc .= $this->_indent_text($text);
-        $this->doc .= DOKU_LF;
+//        $this->doc .= DOKU_LF;
     }
 
     function acronym($acronym) {
@@ -377,6 +392,7 @@ class renderer_plugin_doku2rest extends Doku_Renderer {
 
     function table_open($maxcols = null, $numrows = null, $pos = null){
         $this->doc .= DOKU_LF . ".. csv-table::" . DOKU_LF;
+        $this->doc .= "   :escape: \\" . DOKU_LF;
         $this->store = $this->doc;
         $this->doc = '';
 
@@ -398,6 +414,7 @@ class renderer_plugin_doku2rest extends Doku_Renderer {
         }
         
         if (sizeof($this->table)) {
+            $this->doc .= DOKU_LF;
             $fp = fopen('php://temp/', 'w+');
             foreach($this->table as $row) {
                 fputcsv($fp, $row);
